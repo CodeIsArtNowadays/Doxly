@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 
-from calculations import cos_sim
+from src.calculations import cos_sim
+from src.data import TEXT_TO_CHUNK
 
 semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
 
@@ -21,8 +22,20 @@ class Vector:
 
 class VectorStorage:
     
-    def __init__(self):
+    def __init__(self, text=None):
         self.vectors = []
+        
+        if text:
+            chunks = self._chunking_char(text)
+            for chunk in chunks:
+                self.add_vector(Vector(chunk))
+    
+    def _chunking_char(self, text, size=300, overlap=50):
+        res = []
+        step = size - overlap
+        for i in range(0, len(text), step):
+            res.append(text[i:i+size])
+        return res
     
     def add_vector(self, vector: Vector):
         self.vectors.append(vector)
@@ -31,25 +44,8 @@ class VectorStorage:
         score = sorted(self.vectors, key=lambda x: cos_sim(query_vector, x.vec), reverse=True)
         return score
         
-        
     def search(self, query, k=3):
         v_query = semantic_model.encode(query)
-    
         return self.sort(v_query)[:k]
 
 
-def main():
-    
-    vectors = VectorStorage()
-    
-    vectors_texts = ['king', 'dog', 'England', 'pink', 'rap']
-    
-    for i in vectors_texts:
-        vectors.add_vector(Vector(i))
-    
-    print(vectors.search('London'))
-    print(vectors.search('monarchy'))
-
-
-if __name__ == '__main__':
-    main()

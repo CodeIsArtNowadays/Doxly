@@ -11,3 +11,5 @@ wheels/
 
 journal.txt
 plan.txt
+
+config.py
