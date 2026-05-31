@@ -1,7 +1,7 @@
 from sentence_transformers import SentenceTransformer
 
 from src.calculations import cos_sim
-from src.data import TEXT_TO_CHUNK
+from src.bm25 import bm25
 
 semantic_model = SentenceTransformer('all-MiniLM-L6-v2')
 
@@ -24,6 +24,7 @@ class VectorStorage:
     
     def __init__(self, text=None):
         self.vectors = []
+        self.chunks = []
         
         if text:
             chunks = self._chunking_char(text)
@@ -35,6 +36,7 @@ class VectorStorage:
         step = size - overlap
         for i in range(0, len(text), step):
             res.append(text[i:i+size])
+        self.chunks = res
         return res
     
     def add_vector(self, vector: Vector):
@@ -43,8 +45,13 @@ class VectorStorage:
     def sort(self, query_vector):
         score = sorted(self.vectors, key=lambda x: cos_sim(query_vector, x.vec), reverse=True)
         return score
+    
+    def bm25_search(self, query):
+        res = bm25(query, self.chunks)
+        print(res)
         
-    def search(self, query, k=3):
+    
+    def search(self, query, k=1):
         v_query = semantic_model.encode(query)
         return self.sort(v_query)[:k]
 
