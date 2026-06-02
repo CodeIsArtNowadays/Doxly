@@ -15,11 +15,9 @@ class UserService:
         self.repo = repo
         self.hashier = PasswordHash.recommended()
 
-    async def create_user(self, credentials: UserCredentialsSchema):
-        hashed_password = await self.hash_password(credentials.password)
-        user_data = UserCredentialsSchema(username=credentials.username, password=hashed_password)
-        await self.repo.create(user_data)
-        return await self.login(credentials)
+    async def create_user(self, user_data: UserCredentialsSchema):
+        user = await self.repo.create(user_data)
+        return user
         
     async def hash_password(self, pswd: str) -> str:
         return self.hashier.hash(pswd)
