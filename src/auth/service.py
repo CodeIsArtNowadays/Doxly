@@ -1,6 +1,7 @@
 import jwt
 
 from pwdlib import PasswordHash
+from loguru import logger
 
 from config import settings
 from src.auth.repository import UserRepository
@@ -14,21 +15,23 @@ class UserService:
         self.repo = repo
         self.hashier = PasswordHash.recommended()
 
-    async def create_user(self, data: UserCredentialsSchema):
-        password = data.password
-        hashed_password = await self.hash_password(password)
-        data.password = hashed_password
-        return self.repo.create(data)
-
+    async def create_user(self, credentials: UserCredentialsSchema):
+        hashed_password = await self.hash_password(credentials.password)
+        user_data = UserCredentialsSchema(username=credentials.username, password=hashed_password)
+        await self.repo.create(user_data)
+        return await self.login(credentials)
+        
     async def hash_password(self, pswd: str) -> str:
         return self.hashier.hash(pswd)
 
     async def login(self, data: UserCredentialsSchema):
         user = await self.repo.get_by_username(data.username)
         if not user:
+            logger.error('not user')
             raise UserException
 
-        if not await self.verify_password(data.password, user.password):
+        if not await self.verify_password(data.password, user.password):            
+            logger.error('Bad credectials')
             raise UserException
 
         payload = {

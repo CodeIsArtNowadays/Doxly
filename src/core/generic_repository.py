@@ -1,3 +1,5 @@
+from loguru import logger
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import TypeVar, Generic
 
@@ -17,6 +19,7 @@ class BaseRepository(Generic[ModelType]):
         self.session.add(obj)
         await self.session.flush()
         await self.session.refresh(obj)
+        logger.info(f'Repository|{self.model}|Create')
         return obj
 
     async def get_by_id(self, id):

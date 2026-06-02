@@ -9,7 +9,6 @@ class UserRepository(BaseRepository):
     model = UserModel
 
     async def get_by_username(self, username: str):
-
         stmt = select(self.model).where(self.model.username == username)
         return await self.session.scalar(stmt)
         

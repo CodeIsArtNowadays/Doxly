@@ -7,3 +7,7 @@ class UserBaseSchema(BaseModel):
 
 class UserCredentialsSchema(UserBaseSchema):
     password: str
+
+
+class UserLoginResponseSchema(BaseModel):
+    jwt_token: str
