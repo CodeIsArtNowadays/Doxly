@@ -56,3 +56,14 @@ class WorkspaceService:
             members=[MemberCreateSchema(username=member.user.username, user_id=member.user_id) for member in members]
         )
         return workspace_repr_data
+
+    async def get_users_workspaces(self, user_id):
+        return await self.workspace_repo.get_user_workspaces(user_id)
+
+    async def kick_member(self, workspace_id: int, request_user_id: int, member_id: int):
+        if await self.get_member_role(workspace_id, request_user_id) != 'owner':
+            logger.error('Owner only')
+            raise Exception
+        await self.workspace_member_repo.delete_by_user_id(workspace_id, member_id)
+        return True
+    

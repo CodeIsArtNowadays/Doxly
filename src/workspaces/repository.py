@@ -1,5 +1,5 @@
 from sqlalchemy.orm import selectinload
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from src.core.generic_repository import BaseRepository
 from src.workspaces.models import MemberModel
@@ -17,6 +17,10 @@ class MemberRepository(BaseRepository):
 class WorkspaceRepository(BaseRepository):
     model = WorkspaceModel
 
+    async def get_user_workspaces(self, user_id: int):
+        stmt = select(WorkspaceModel).join(WorkspaceMember, WorkspaceModel.id == WorkspaceMember.workspace_id).where(WorkspaceMember.user_id == user_id)
+        res = await self.session.scalars(stmt)
+        return res.all()
 
 class WorkspaceMemberRepository(BaseRepository):
     model = WorkspaceMember
@@ -31,3 +35,8 @@ class WorkspaceMemberRepository(BaseRepository):
         ).options(selectinload(WorkspaceMember.user))
         res = await self.session.scalars(stmt)
         return res.all()
+
+    async def delete_by_user_id(self, workspace_id: int, member_id: int):
+        stmt = delete(WorkspaceMember).where(WorkspaceMember.workspace_id == workspace_id, WorkspaceMember.user_id == member_id)
+        await self.session.execute(stmt)
+        

@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends
+from typing import List
+
+from fastapi import APIRouter, Depends, Body
 
 from src.workspaces.models import MemberModel
 from src.workspaces.service import WorkspaceService
-from src.workspaces.schemas import WorkspaceCreateRequestSchema, AddMemberToWorkspaceSchema, WorkspaceReprSchema
+from src.workspaces.schemas import WorkspaceCreateRequestSchema, AddMemberToWorkspaceSchema, WorkspaceReprSchema, WorkspaceListSchema
 from src.workspaces.dependencies import get_member, get_workspace_service
 
 
@@ -14,6 +16,13 @@ async def index():
     return {'me': 'KING'}
 
 
+@workspaces_router.get('/', response_model=List[WorkspaceListSchema])
+async def get_workspaces(
+    user: MemberModel = Depends(get_member),
+    workspace_service: WorkspaceService = Depends(get_workspace_service)
+):
+    return await workspace_service.get_users_workspaces(user.user_id)
+
 @workspaces_router.post('/')
 async def create_workspace(
     workspace_data: WorkspaceCreateRequestSchema,
@@ -21,7 +30,6 @@ async def create_workspace(
     member: MemberModel = Depends(get_member)
 ):
     return await workspace_service.create_workspace(workspace_data, member.user_id)
-
 
 @workspaces_router.patch('/{id}')
 async def add_member_to_workspace(
@@ -32,8 +40,18 @@ async def add_member_to_workspace(
 ):
     return await workspace_service.add_member_to_workspace(id, user, member_to_add)
 
+@workspaces_router.delete('/{id}/members')
+async def kick_member(
+    id: int, 
+    member_to_kick_id: int = Body(embed=True), 
+    user: MemberModel = Depends(get_member), 
+    workspace_service: WorkspaceService = Depends(get_workspace_service)
+):
+    if await workspace_service.kick_member(id, user.user_id, member_to_kick_id):
+        return {'status': 204}
+    raise Exception
+    
 
 @workspaces_router.get('/{id}', response_model=WorkspaceReprSchema)
 async def get_workspace(id: int, user: MemberModel = Depends(get_member), workspace_service: WorkspaceService = Depends(get_workspace_service)):
-    return await workspace_service.get_workspace(id, user.user_id) 
-    
+    return await workspace_service.get_workspace(id, user.user_id)

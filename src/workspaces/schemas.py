@@ -17,6 +17,10 @@ class WorkspaceBaseSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class WorkspaceListSchema(WorkspaceBaseSchema):
+    id: int
+
+
 class WorkspaceCreateRequestSchema(WorkspaceBaseSchema):
     pass
 
