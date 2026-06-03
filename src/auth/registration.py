@@ -3,9 +3,9 @@ from fastapi import Depends
 from src.auth.service import UserService
 from src.auth.schemas import UserCredentialsSchema
 from src.auth.dependencies import get_user_service
-from src.api.schemas import MemberCreateSchema
-from src.api.repository import MemberRepository
-from src.api.dependencies import get_member_repo
+from src.workspaces.schemas import MemberCreateSchema
+from src.workspaces.repository import MemberRepository
+from src.workspaces.dependencies import get_member_repo
 
 
 class RegistrationUseCase:

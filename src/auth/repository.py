@@ -1,7 +1,6 @@
 from sqlalchemy import select
 
 from src.core.generic_repository import BaseRepository
-
 from src.auth.models import UserModel
 
 

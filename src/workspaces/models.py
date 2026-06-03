@@ -3,8 +3,8 @@ from typing import List
 
 from sqlalchemy import String, ForeignKey, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.core.db import Base
 
+from src.core.db import Base
 from src.auth.models import UserModel
 from src.core.custom_types import RoleLiteral, StatusLiteral
 
