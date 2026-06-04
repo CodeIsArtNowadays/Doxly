@@ -46,10 +46,6 @@ class WorkspaceService:
         return await self.workspace_member_repo.create(member_workspace_data)
 
     async def get_workspace(self, workspace_id: int, user_id: int):
-        # role = await self.get_member_role(workspace_id, user_id)
-        # if not role:
-        #     logger.error('Members only')
-        #     raise Exception
 
         workspace = await self.workspace_repo.get_by_id(workspace_id) # title
         members = await self.workspace_member_repo.get_workspace_members(workspace_id) # usernames (id) + docs
@@ -67,10 +63,6 @@ class WorkspaceService:
         return True
 
     async def change_member_role(self, change_role_data: ChangeMemberRole):
-        user_role = await self.get_member_role(change_role_data.workspace_id, change_role_data.user_id)
-        if not user_role == 'owner':
-            logger.error('Permission denied')
-            raise Exception
 
         return await self.workspace_member_repo.change_member_role(
             change_role_data.workspace_id,

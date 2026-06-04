@@ -1,14 +1,15 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from src.workspaces.router import workspaces_router
+from src.core.exceptions import ProjectBaseException
 from src.auth.router import auth_router
+from src.workspaces.router import workspaces_router
 
 app = FastAPI()
 
 app.include_router(workspaces_router, prefix='')
 app.include_router(auth_router, prefix='/auth')
 
-@app.exception_handler(Exception)
+@app.exception_handler(ProjectBaseException)
 async def base_exception_handler(request, exc):
-    return JSONResponse({'bad': True})
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})

@@ -1,4 +1,5 @@
 from loguru import logger
+
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,6 +9,7 @@ from src.auth.models import UserModel
 from src.workspaces.service import WorkspaceService
 from src.workspaces.models import MemberModel
 from src.workspaces.repository import MemberRepository, WorkspaceRepository, WorkspaceMemberRepository
+from src.workspaces.exceptions import PermissionDeniedException
 
 
 async def get_member_repo(session: AsyncSession = Depends(get_db)):
@@ -46,6 +48,6 @@ class Permission:
         member_role = await wm_repo.member_role(id, member.user_id)
         if member_role not in self.roles:
             logger.error('Permission Denied')
-            raise Exception
+            raise PermissionDeniedException
         return member
         

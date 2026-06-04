@@ -61,5 +61,5 @@ async def kick_member(
 ):
     if await workspace_service.kick_member(id, user.user_id, member_to_kick_id):
         return {'status': 204}
-    raise Exception
+    raise Exception # todo refactor to get_member_by_id
     
