@@ -38,11 +38,6 @@ class WorkspaceService:
         member_from_request: MemberModel,
         member_data: AddMemberToWorkspaceSchema
     ):
-        role = await self.get_member_role(workspace_id, member_from_request.user_id)
-        if role != 'owner':
-             logger.error('Owner only')
-             raise Exception
-
         member_workspace_data = WorkspaceMemberCreateSchema(
             workspace_id=workspace_id,
             user_id=member_data.user_id,
@@ -51,10 +46,10 @@ class WorkspaceService:
         return await self.workspace_member_repo.create(member_workspace_data)
 
     async def get_workspace(self, workspace_id: int, user_id: int):
-        role = await self.get_member_role(workspace_id, user_id)
-        if not role:
-            logger.error('Members only')
-            raise Exception
+        # role = await self.get_member_role(workspace_id, user_id)
+        # if not role:
+        #     logger.error('Members only')
+        #     raise Exception
 
         workspace = await self.workspace_repo.get_by_id(workspace_id) # title
         members = await self.workspace_member_repo.get_workspace_members(workspace_id) # usernames (id) + docs
@@ -68,9 +63,6 @@ class WorkspaceService:
         return await self.workspace_repo.get_user_workspaces(user_id)
 
     async def kick_member(self, workspace_id: int, request_user_id: int, member_id: int):
-        if await self.get_member_role(workspace_id, request_user_id) != 'owner':
-            logger.error('Owner only')
-            raise Exception
         await self.workspace_member_repo.delete_by_user_id(workspace_id, member_id)
         return True
 

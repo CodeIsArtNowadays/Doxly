@@ -12,7 +12,7 @@ class MemberRepository(BaseRepository):
     model = MemberModel
 
     async def get_member_by_user_id(self, user_id) -> MemberModel | None:
-        stmt = select(MemberModel).where(user_id == user_id)
+        stmt = select(MemberModel).where(MemberModel.user_id == user_id)
         return await self.session.scalar(stmt)
 
 
