@@ -15,10 +15,10 @@ class ConnectionManager:
         if self.active_connections.get(id):
             self.active_connections[id].remove(websocket)
 
-    async def broadcast(self, id: int, message: str):
+    async def broadcast(self, id: int, message):
         if self.active_connections[id]:
            for connection in self.active_connections[id]:
-               await connection.send_text(message)
+               await connection.send_json(message.model_dump())
                
 
 websocket_manager = ConnectionManager()

@@ -5,7 +5,7 @@ from src.auth.dependencies import get_user_service
 from src.auth.service import UserService
 from src.chat.dependencies import PaginationParams, get_channel_repo, get_message_repo
 from src.chat.repository import ChannelRepository, MessageRepository
-from src.chat.schemas import MessageSchema
+from src.chat.schemas import MessageSchema, MessageResponseSchema
 from src.chat.service import websocket_manager
 from src.chat.utils import get_member_by_token, verify_membership
 from src.workspaces.dependencies import (
@@ -51,10 +51,13 @@ async def ws_handler(
                 data["content"]["token"], user_service, member_repo
             )
             channel = await channel_repo.get_or_create(workspace_id)
+
             if await verify_membership(workspace_id, member.user_id, workspace_service):
                 await websocket_manager.connect(workspace_id, websocket)
+            
                 while True:
-                    data = await websocket.receive_json()
+                    data = await websocket.receive_json() # JSON: {"type": "message": 'content': {'message': 'text'}}
+            
                     if data["type"] == "message":
                         message_raw = data["content"]["message"]
                         message = MessageSchema(
@@ -63,9 +66,10 @@ async def ws_handler(
                             channel_id=channel.id,
                         )
                         message = await message_repo.create(message)
+                        message_response = MessageResponseSchema.model_validate(message)
                         await websocket_manager.broadcast(
-                            workspace_id, message.text
-                        )  # TODO: broadcast json > text
+                            workspace_id, message_response
+                        )
         else:
             await websocket.close(1008)
     except WebSocketDisconnect:

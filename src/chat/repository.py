@@ -1,4 +1,5 @@
 from sqlalchemy import select, desc
+from sqlalchemy.orm import selectinload
 
 from src.core.generic_repository import BaseRepository
 from src.chat.models import ChannelModel, MessageModel
@@ -26,6 +27,11 @@ class ChannelRepository(BaseRepository):
 
 class MessageRepository(BaseRepository):
     model = MessageModel
+
+    async def create(self, data):
+        message = await super().create(data)
+        stmt = select(MessageModel).where(MessageModel.id == message.id).options(selectinload(MessageModel.author))
+        return await self.session.scalar(stmt)
 
     async def get_messages_by_channel_id(self, channel_id: int, size: int, cursor: int | None):
         stmt = select(MessageModel).where(MessageModel.channel_id == channel_id)
