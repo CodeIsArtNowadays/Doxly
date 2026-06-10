@@ -2,7 +2,7 @@ import numpy as np
 from loguru import logger
 from sentence_transformers import SentenceTransformer
 
-from src.calculations import bm25, cos_sim, min_max_norm
+from src.ai.calculations import bm25, cos_sim, min_max_norm
 
 semantic_model = SentenceTransformer("all-MiniLM-L6-v2")
 

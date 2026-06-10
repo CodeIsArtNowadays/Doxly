@@ -103,11 +103,11 @@
     <ul class="chat-output" id="chatOutput">
 
     </ul>
-    <form class="fast-form" id="chatForm" onsubmit="sendMessage">
+    <form action="" class="fast-form" id="chatForm" onsubmit="sendMessage(event)">
       <input type="text" class="fast-input" id="chatInput" placeholder="Enter your message..." required>
       <button type="submit" class="fast-btn">Submit</button>
     </form>
-    <form class="fast-form" id="authForm" onsubmit="sendAuth">
+    <form action="" class="fast-form" id="authForm" onsubmit="sendAuth(event)">
       <input type="text" class="fast-input" id="authInput" placeholder="Enter your token..." required>
       <button type="submit" class="fast-btn">Auth</button>
     </form>

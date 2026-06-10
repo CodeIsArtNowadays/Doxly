@@ -1,14 +1,13 @@
 from loguru import logger
 from openai import OpenAI
 
-from src.config import AI_KEY
 
 
 class LLMService:
     def __init__(self):
         self.client = OpenAI(
             base_url='https://openrouter.ai/api/v1',
-            api_key=AI_KEY
+            api_key='AI_KEY'
         )
     
     def get_response_from_llm(self, messages):

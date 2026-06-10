@@ -53,8 +53,9 @@ async def ws_handler(
                 await websocket_manager.connect(workspace_id, websocket)
             
                 while True:
+                    print('while')
                     data = await websocket.receive_json() # JSON: {"type": "message": 'content': {'message': 'text'}}
-            
+                    print(data)
                     if data["type"] == "message":
                         message_raw = data["content"]["message"]
                         message = MessageSchema(
