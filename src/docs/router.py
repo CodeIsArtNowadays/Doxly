@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 
 from src.docs.dependencies import get_docs_service
 from src.docs.service import DocumentService
@@ -22,5 +22,11 @@ async def upload_document(
 
     if file_extension not in allowed_extensions:
         raise Exception # TODO: exc
-        
+
+    # TODO: exc
+    try:
+        document = await docs_service.upload_file(workspace_id, member.user_id, file)
+    except Exception:
+        raise HTTPException(status_code=404, detail='File upload error')
+    
     # docs_service.proccess_in_background
