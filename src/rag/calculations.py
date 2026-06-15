@@ -46,26 +46,34 @@ def calc_document_length_normalization(data):
     return res
 
 
-def bm25(query, data):
-    query = query.split(' ')
-    chunks = [chunk.chunk for chunk in data]
-
-    tf = calc_term_frequency(query, chunks)
-    idf = calc_inverse_document_frequency(query, chunks, tf)
+def bm25(query: str, chunks: list[str]):
+    words = query.split(' ')
+    # data = [chunk(chunk: str)]
+    tf = calc_term_frequency(words, chunks)
+    idf = calc_inverse_document_frequency(words, chunks, tf)
     dln = calc_document_length_normalization(chunks)
     k1 = 1.2 
     b = 0.75
-    res = {}
+    res = []
     for i, d in enumerate(chunks):
         score = 0
         
-        for word in query:
+        for word in words:
             num = tf[(word, i)] * (k1 + 1)
             den = tf[(word, i)] + (k1 * (1 - b + b * (len(d.split(' ')) / dln)))
             
             frac = num / den 
             score += idf[word] * frac
     
-        res[data[i].id] = score
+        res.append(score)
     
     return res   
+
+
+if __name__ == '__main__':
+    query = 'apple pie'
+    d1 = 'buy apple f d f d  f' # 0.42
+    d2 = 'apple pie' # 0.92
+    d3 = 'tasty asd pie d d ' # 0.42
+    
+    print(bm25(query, [d1, d2, d3]))
