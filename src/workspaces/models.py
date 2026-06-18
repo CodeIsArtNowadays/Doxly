@@ -17,7 +17,7 @@ class MemberModel(Base):
 
     workspaces: Mapped[List['WorkspaceMember']] = relationship('WorkspaceMember', back_populates='user')
 
-    # messages: Mapped[List['MessageModel']] = relationship('MessageModel', back_populates='author') # noqa: F821  # ty:ignore[unresolved-reference]
+    messages = relationship('MessageModel', back_populates='author')
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
@@ -35,8 +35,8 @@ class WorkspaceModel(Base):
 
     users: Mapped[List['WorkspaceMember']] = relationship('WorkspaceMember', back_populates='workspace')
 
-    # channel: Mapped['ChannelModel'] = relationship('ChannelModel', back_populates='workspace') # noqa: F821  # ty:ignore[unresolved-reference]
-    
+    # channel: Mapped['ChannelModel'] = relationship('ChannelModel', back_populates='workspace') 
+    # 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

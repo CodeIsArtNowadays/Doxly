@@ -1,4 +1,3 @@
-from pgvector.sqlalchemy import Vector
 from pydantic import BaseModel
 
 
@@ -12,5 +11,5 @@ class DocumentCreateSchema(BaseModel):
 class ChunkCreateSchema(BaseModel):
     document_id: int
     document_index: int
-    embedding: Vector
+    embedding: list[float]
     text: str

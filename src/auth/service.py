@@ -19,7 +19,10 @@ class UserService:
         return await self.repo.get_by_id(user_id)
     
     async def create_user(self, user_data: UserCredentialsSchema):
-        user = await self.repo.create(user_data)
+        try:
+            user = await self.repo.create(user_data)
+        except Exception:
+            raise UserException('Username taken')
         return user
         
     async def hash_password(self, pswd: str) -> str:

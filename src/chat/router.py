@@ -1,13 +1,17 @@
 from fastapi import APIRouter, Depends, WebSocket
 from fastapi.websockets import WebSocketDisconnect
 
+from src.core.db import local_session
+
 from src.auth.dependencies import get_user_service
 from src.auth.service import UserService
+
 from src.chat.dependencies import PaginationParams, get_message_repo
 from src.chat.repository import MessageRepository
 from src.chat.schemas import MessageSchema, MessageResponseSchema
 from src.chat.service import websocket_manager
 from src.chat.utils import get_member_by_token, verify_membership
+
 from src.workspaces.dependencies import (
     Permission,
     get_member_repo,
@@ -17,11 +21,14 @@ from src.workspaces.models import MemberModel
 from src.workspaces.repository import MemberRepository
 from src.workspaces.service import WorkspaceService
 
+from src.rag.dependencies import get_rag_service
+from src.rag.rag_service import RagService
+
 
 chat_router = APIRouter(prefix="/{workspace_id}")
 
 
-@chat_router.get("/channel")
+@chat_router.get("/channel", response_model=list[MessageResponseSchema])
 async def channel(
     workspace_id: int,
     user: MemberModel = Depends(Permission(["owner", "admin", "member"])),
@@ -40,6 +47,7 @@ async def ws_handler(
     member_repo: MemberRepository = Depends(get_member_repo),
     workspace_service: WorkspaceService = Depends(get_workspace_service),
     message_repo: MessageRepository = Depends(get_message_repo),
+    rag_service: RagService = Depends(get_rag_service)
 ):
     await websocket.accept()
     try:
@@ -53,9 +61,9 @@ async def ws_handler(
                 await websocket_manager.connect(workspace_id, websocket)
             
                 while True:
-                    print('while')
+                    
                     data = await websocket.receive_json() # JSON: {"type": "message": 'content': {'message': 'text'}}
-                    print(data)
+                    
                     if data["type"] == "message":
                         message_raw = data["content"]["message"]
                         message = MessageSchema(
@@ -63,11 +71,26 @@ async def ws_handler(
                             author_id=member.user_id,
                             workspace_id=workspace_id,
                         )
-                        message = await message_repo.create(message)
+                        async with local_session.begin() as inner_session:
+                            local_message_repo = MessageRepository(inner_session)
+                            message = await local_message_repo.create(message)
+                            await inner_session.commit()
                         message_response = MessageResponseSchema.model_validate(message)
+                        message_response.created_at = str(message_response.created_at)
                         await websocket_manager.broadcast(
                             workspace_id, message_response
                         )
+                        if message.text.startswith('@ai'):
+                            # chunks in workspace
+                            ai_response = await rag_service.process(message.text[2:], workspace_id)
+                            message = MessageSchema(
+                                text=ai_response,
+                                author_id=22,
+                                workspace_id=workspace_id
+                            )
+                            await websocket_manager.broadcast(
+                                workspace_id, message
+                            )
         else:
             await websocket.close(1008)
     except WebSocketDisconnect:

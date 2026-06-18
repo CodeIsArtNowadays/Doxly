@@ -35,7 +35,7 @@ async def create_workspace(
 
 # AUTHORIZED
 
-@workspaces_router.get('/{id}', response_model=WorkspaceReprSchema)
+@workspaces_router.get('/{workspace_id}', response_model=WorkspaceReprSchema)
 async def get_workspace(
     workspace_id: int, 
     user: MemberModel = Depends(Permission(['owner', 'admin', 'member'])),
@@ -43,7 +43,7 @@ async def get_workspace(
 ):
     return await workspace_service.get_workspace(workspace_id, user.user_id)
 
-@workspaces_router.patch('/{id}')
+@workspaces_router.patch('/{workspace_id}/members')
 async def add_member_to_workspace(
     workspace_id: int,
     member_to_add: AddMemberToWorkspaceSchema,
@@ -52,7 +52,7 @@ async def add_member_to_workspace(
 ):
     return await workspace_service.add_member_to_workspace(workspace_id, user, member_to_add)
 
-@workspaces_router.delete('/{id}/members')
+@workspaces_router.delete('/{workspace_id}/members')
 async def kick_member(
     workspace_id: int, 
     member_to_kick_id: int = Body(embed=True), 

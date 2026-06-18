@@ -7,9 +7,9 @@ from docx import Document
 from sentence_transformers import SentenceTransformer
 
 from src.docs.models import DocumentModel
-from src.docs.repository import ChunkRepository
+from src.docs.repository import ChunkRepository, DocumentRepository
 from src.docs.schemas import ChunkCreateSchema
-from src.docs.dependencies import get_chunk_repo
+from src.docs.dependencies import get_chunk_repo, get_docs_repo
 
 
 semantic_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -17,8 +17,12 @@ semantic_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 class ProcessFile:
 
-    def __init__(self, chunk_repo: ChunkRepository = Depends(get_chunk_repo)):
+    def __init__(self, 
+        chunk_repo: ChunkRepository = Depends(get_chunk_repo),
+        document_repo: DocumentRepository = Depends(get_docs_repo)
+    ):
         self.chunk_repo = chunk_repo
+        self.document_repo = document_repo
         self.PARSERS = {
             'pdf': self.get_text_from_pdf,
             'txt': self.get_text_from_txt,
@@ -43,6 +47,7 @@ class ProcessFile:
                 embedding=chunk['embedding']
             )
             await self.chunk_repo.create(chunk_data)
+        await self.document_repo.set_status(document.id, 'ready')
 
     async def embedding(self, chunk):
         return await asyncio.to_thread(semantic_model.encode, chunk)

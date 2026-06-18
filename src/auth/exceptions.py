@@ -2,5 +2,5 @@ from src.core.exceptions import ProjectBaseException
 
 
 class UserException(ProjectBaseException):
-    def __init__(self):
-        super().__init__('Bad credentials', 401)
+    def __init__(self, message='Bad credentials'):
+        super().__init__(message, 401)

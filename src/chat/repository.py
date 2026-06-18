@@ -29,12 +29,14 @@ class MessageRepository(BaseRepository):
     model = MessageModel
 
     async def create(self, data):
+       
         message = await super().create(data)
+        # await self.session.commit()
         stmt = select(MessageModel).where(MessageModel.id == message.id).options(selectinload(MessageModel.author))
         return await self.session.scalar(stmt)
 
     async def get_messages_by_workspace_id(self, workspace_id: int, size: int, cursor: int | None):
-        stmt = select(MessageModel).where(MessageModel.workspace_id == workspace_id)
+        stmt = select(MessageModel).where(MessageModel.workspace_id == workspace_id).options(selectinload(MessageModel.author))
         if cursor:
             stmt = stmt.where(MessageModel.id < cursor)
         stmt = stmt.order_by(desc(MessageModel.id)).limit(size)

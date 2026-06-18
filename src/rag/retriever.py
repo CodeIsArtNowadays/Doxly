@@ -20,7 +20,7 @@ chunks = [
 # -> chunks = [+'score': 0.5]
 
 
-def rate_chunks(message: str, chunks: list[ChunkModel], k: int=3):
+def rate_chunks(message: str, chunks: list[ChunkModel], k: int=5):
     message_vector = semantic_model.encode(message)
 
     chunks_texts = [chunk.text for chunk in chunks]

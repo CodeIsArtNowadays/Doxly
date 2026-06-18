@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, DateTime, func, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.db import Base
+
 
 
 class MessageModel(Base):
@@ -15,7 +16,7 @@ class MessageModel(Base):
     author_id: Mapped[int] = mapped_column(ForeignKey('members.user_id'), index=True)
 
     # channel: Mapped['ChannelModel'] = relationship(ChannelModel, back_populates='messages')
-    # # author: Mapped['MemberModel'] = relationship('MemberModel', back_populates='messages') # noqa: F821  
+    author = relationship('MemberModel', back_populates='messages') # noqa: F821  
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(),

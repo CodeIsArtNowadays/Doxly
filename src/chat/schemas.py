@@ -12,6 +12,6 @@ class MessageSchema(BaseModel):
 class MessageResponseSchema(BaseModel):
     text: str
     author: MemberCreateSchema
-    created_at: datetime
+    created_at: datetime | str
 
     model_config = ConfigDict(from_attributes=True)

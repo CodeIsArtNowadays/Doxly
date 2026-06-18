@@ -12,6 +12,7 @@ from src.core.db import Base
 from src.auth.models import UserModel
 from src.workspaces.models import MemberModel, WorkspaceMember, WorkspaceModel
 from src.docs.models import DocumentModel, ChunkModel
+from src.chat.models import MessageModel
 
 def get_url():
     return settings.async_db_url
