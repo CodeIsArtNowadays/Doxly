@@ -8,7 +8,7 @@ from src.auth.service import UserService
 
 from src.chat.dependencies import PaginationParams, get_message_repo
 from src.chat.repository import MessageRepository
-from src.chat.schemas import MessageSchema, MessageResponseSchema
+from src.chat.schemas import MessageSchema, MessageResponseSchema, AiMessageSchema
 from src.chat.service import websocket_manager
 from src.chat.utils import get_member_by_token, verify_membership
 
@@ -66,30 +66,36 @@ async def ws_handler(
                     
                     if data["type"] == "message":
                         message_raw = data["content"]["message"]
+                        
                         message = MessageSchema(
                             text=message_raw,
                             author_id=member.user_id,
                             workspace_id=workspace_id,
                         )
+                        
                         async with local_session.begin() as inner_session:
                             local_message_repo = MessageRepository(inner_session)
                             message = await local_message_repo.create(message)
                             await inner_session.commit()
+                            
                         message_response = MessageResponseSchema.model_validate(message)
                         message_response.created_at = str(message_response.created_at)
+                        
                         await websocket_manager.broadcast(
                             workspace_id, message_response
                         )
+                        
                         if message.text.startswith('@ai'):
                             # chunks in workspace
                             ai_response = await rag_service.process(message.text[2:], workspace_id)
-                            message = MessageSchema(
-                                text=ai_response,
+                            ai_response_message = AiMessageSchema(
+                                text=ai_response['message'],
                                 author_id=22,
-                                workspace_id=workspace_id
+                                workspace_id=workspace_id,
+                                chunks=ai_response['chunks']
                             )
                             await websocket_manager.broadcast(
-                                workspace_id, message
+                                workspace_id, ai_response_message
                             )
         else:
             await websocket.close(1008)

@@ -15,3 +15,7 @@ class MessageResponseSchema(BaseModel):
     created_at: datetime | str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AiMessageSchema(MessageSchema):
+    chunks: list[int]

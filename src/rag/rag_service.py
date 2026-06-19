@@ -13,4 +13,4 @@ class RagService:
         top_related_chunks = rate_chunks(message, chunks)
         response = llm_service.ask_llm('Provided context: \n' + '\n'.join([chunk.text for chunk in top_related_chunks]))
         # response = {'type': 'llm', 'content': {'message': response}}
-        return response
+        return {'message': response, 'chunks': [chunk.id for chunk in chunks]}
