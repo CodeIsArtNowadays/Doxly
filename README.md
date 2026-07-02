@@ -1,85 +1,116 @@
-# Мультитенантный групповой чат с анализом документов
-<br>
-Backend-приложение для создания каналов с чатом и возможность загрузки документов и их анализа через AI
+# Doxly
 
-// VIDEO
+Multitenant group chat with AI document analysis.
 
-## MVP
-- Регистрация/Авторизация
-- Создание воркспейсов
-- Добавление участников в воркспейс хозяевами (owner)
-- Ограничение доступа по принадлежности к воркспейсу, и правам
-- Внутриканальный чат
-- Загрузка в воркспейс документов
-- Вопрос к ллм по документам в чате через "@ai"
+Users create workspaces, invite members, chat in channels, upload documents, and query them via `@ai` — the backend retrieves relevant chunks using hybrid search and generates a response through an LLM.
 
-## Стек используемых технологий:
-- python
-- Fastapi w/ sqlalchemy, pydantic
-- openai, openrouter, sentence-transformers
-- websockets
-- postgresql
-- pgvector
+> **Live demo:** _coming soon_
 
-## Запуск локально 
 
-## Архитектура
-Основная backend логика реализованна по типу роут - сервис - репозиторий. Уровень роута принимает данные по http протоколам, обрабатывает вебсокет и проверяет наличие прав доступа (member, admin, owner) через DI. Уровень репозитория взаимоодействует с бд. Сервис связывает роуты и репозитории.
-Проект разбит на логические части - приложения: auth, workspaces, chat, docs, rag. Приложение core - системное, используется в каждом из других.
-Для авторизации в приложении auth используется JWT токен. Процесс регистрации вынесен в use case registration.py из-за создания сторонней модели Member. 
-Приложения workspaces, chat, docs - обрабатывают создание каналов, соединение с чатом, загрузку и обработку документов.
-Приложение rag реализует выборку чанков, нахождение схожести по гибридному (cosine similarity + bm25) поиску, и запрос к ллм.
 
-## Структура проекта 
-```backend/
-|-- config.py
-|-- main.py
-|-- README.md
-`-- src
-    |-- auth
-    |   |-- dependencies.py
-    |   |-- exceptions.py
-    |   |-- models.py
-    |   |-- registration.py
-    |   |-- repository.py
-    |   |-- router.py
-    |   |-- schemas.py
-    |   `-- service.py
-    |-- chat
-    |   |-- dependencies.py
-    |   |-- models.py
-    |   |-- repository.py
-    |   |-- router.py
-    |   |-- schemas.py
-    |   |-- service.py
-    |   `-- utils.py
-    |-- core
-    |   |-- custom_types.py
-    |   |-- db.py
-    |   |-- dependencies.py
-    |   |-- exceptions.py
-    |   `-- generic_repository.py
-    |-- rag
-    |   |-- calculations.py
-    |   |-- data.py
-    |   |-- dependencies.py
-    |   |-- llm_service.py
-    |   |-- rag_service.py
-    |   `-- retriever.py
-    `-- workspaces
-        |-- dependencies.py
-        |-- exceptions.py
-        |-- models.py
-        |-- repository.py
-        |-- router.py
-        |-- schemas.py
-        `-- service.py
+---
+
+## Features
+
+- JWT authentication with registration and login
+- Multitenant workspaces with role-based access control (owner / admin / member)
+- WebSocket group chat with first-message token auth pattern
+- Document upload with background processing pipeline (parse → chunk → embed → store)
+- `@ai` mentions trigger hybrid RAG search + LLM response inline in chat
+- Permission enforcement via callable FastAPI `Depends` — no decorators, no middleware
+
+---
+
+## Tech Stack
+
+| Layer | Tools |
+|---|---|
+| API | FastAPI, Pydantic v2 |
+| Database | PostgreSQL, SQLAlchemy (async) |
+| Vector search | pgvector |
+| Embeddings | sentence-transformers (all-MiniLM-L6-v2) |
+| LLM | OpenRouter (OpenAI-compatible) |
+| Real-time | WebSockets |
+
+---
+
+## Architecture
+
+Route → Service → Repository pattern across independent apps: `auth`, `workspaces`, `chat`, `rag`, `core`.
+
+**RBAC** is implemented as a callable `Permission` class injected via `Depends`. Each route declares required role; the dependency resolves workspace membership and compares roles without touching business logic.
+
+**WebSocket auth** uses a first-message pattern: the client sends a JSON token as the first message after connecting. The connection is rejected if the token is missing or invalid — no HTTP upgrade headers required.
+
+**Hybrid search** is implemented from scratch without libraries. BM25 (TF-IDF with length normalization) and cosine similarity via pgvector run independently. Results are combined as a weighted score fusion: `final_score = cosine_score * 0.6 + bm25_score * 0.4`. Chunks are ranked by final score and top-k are passed to the LLM as context.
+
+**Document pipeline** runs in FastAPI `BackgroundTasks`: upload → text extraction → character-based chunking with overlap → sentence-transformers embedding → pgvector insert.
+
+---
+
+## Project Structure
+
+```
+backend/
+├── main.py
+├── config.py
+└── src/
+    ├── core/          # DB session, base repository, shared exceptions
+    ├── auth/          # JWT, registration use case
+    ├── workspaces/    # Workspace and membership management
+    ├── chat/          # WebSocket handler, message persistence
+    └── rag/           # Chunking, hybrid search, LLM service
 ```
 
-## План на дальнейшее развитие
-- redis для websockets
-- pgvector search
-- деплой
-- тесты
-- implement Advanced RAG techniques
-- расширение функционала разных прав доступа
+---
+
+## Running Locally
+
+### Prerequisites
+
+- Docker and Docker Compose
+- OpenRouter API key
+
+### Setup
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/CodeIsArtNowadays/Doxly.git
+cd Doxly
+```
+
+2. Create `.env` file in `backend/`
+
+```env
+DB_HOST=db
+DB_PORT=5432
+POSTGRES_DB=doxly
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=yourpassword
+JWT_SECRET_KEY=your-secret-key
+AI_KEY=your-openrouter-key
+```
+
+3. Start with Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+API available at `http://localhost:8000`  
+Swagger docs at `http://localhost:8000/docs`
+
+---
+
+## API Overview
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | Get JWT token |
+| POST | `/workspaces` | Create workspace |
+| POST | `/workspaces/{id}/members` | Invite member (owner only) |
+| GET | `/workspaces/{id}/channels` | List channels |
+| WS | `/chat/{channel_id}` | Connect to channel chat |
+| POST | `/workspaces/{id}/documents` | Upload document |
