@@ -20,7 +20,7 @@ const ws = ref(null)
 
 // --- WebSocket ---
 function connectWS() {
-  ws.value = new WebSocket(`ws://localhost:8000/${id}/channel`)
+  ws.value = new WebSocket(`ws://localhost:8001/${id}/channel`)
 
   ws.value.onopen = () => {
     ws.value.send(JSON.stringify({

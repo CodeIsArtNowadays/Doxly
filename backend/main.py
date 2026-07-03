@@ -17,7 +17,7 @@ app.include_router(docs_router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5176"],  # конкретный origin
+    allow_origins=["http://localhost:5174"],  # конкретный origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

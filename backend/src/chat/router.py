@@ -91,7 +91,7 @@ async def ws_handler(
 
                             ai_message = MessageSchema(
                                 text=ai_response['message'],
-                                author_id=22,
+                                author_id=1,
                                 workspace_id=workspace_id,
                                 is_ai=True
                             )
@@ -102,7 +102,7 @@ async def ws_handler(
                                 
                             ai_response_message = AiMessageSchema(
                                 text=ai_message.text,
-                                author_id=22,
+                                author_id=1,
                                 workspace_id=ai_message.workspace_id,
                                 chunks=ai_response['chunks'],
                                 is_ai=True

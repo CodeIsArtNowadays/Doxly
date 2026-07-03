@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 5173
 
-CMD ["npx", "vite", "--host", "--port", "5173"]
+CMD ["npx", "vite", "--host", "--port", "5174"]

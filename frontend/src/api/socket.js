@@ -1,4 +1,4 @@
-const BASE_WS = 'ws://localhost:8000'
+const BASE_WS = 'ws://localhost:8001'
 
 export function createSocket(path, onMessage, onClose) {
   const token = localStorage.getItem('token')
