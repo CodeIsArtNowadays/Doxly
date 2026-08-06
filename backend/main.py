@@ -10,20 +10,22 @@ from src.workspaces.router import workspaces_router
 
 app = FastAPI()
 
-app.include_router(workspaces_router)
-app.include_router(auth_router, prefix="/auth")
-app.include_router(chat_router)
-app.include_router(docs_router)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174"],  # конкретный origin
+    allow_origins=[
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://139.100.235.44:5174", 
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
+app.include_router(workspaces_router)
+app.include_router(auth_router, prefix="/auth")
+app.include_router(chat_router)
+app.include_router(docs_router)
 
 @app.exception_handler(ProjectBaseException)
 async def base_exception_handler(request, exc):

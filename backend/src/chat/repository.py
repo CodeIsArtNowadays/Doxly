@@ -39,7 +39,7 @@ class MessageRepository(BaseRepository):
         stmt = select(MessageModel).where(MessageModel.workspace_id == workspace_id).options(selectinload(MessageModel.author))
         if cursor:
             stmt = stmt.where(MessageModel.id < cursor)
-        stmt = stmt.order_by(desc(MessageModel.id)).limit(size)
+        stmt = stmt.order_by(MessageModel.id).limit(size)
 
         res = await self.session.execute(stmt)
         return res.scalars().all()

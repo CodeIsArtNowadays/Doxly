@@ -14,6 +14,9 @@ class MemberRepository(BaseRepository):
     async def get_member_by_user_id(self, user_id) -> MemberModel | None:
         stmt = select(MemberModel).where(MemberModel.user_id == user_id)
         return await self.session.scalar(stmt)
+    async def get_member_by_username(self, username: str) -> MemberModel | None:
+        stmt = select(MemberModel).where(MemberModel.username == username)
+        return await self.session.scalar(stmt)
 
 
 class WorkspaceRepository(BaseRepository):

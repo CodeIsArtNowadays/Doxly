@@ -36,7 +36,7 @@ class WorkspaceMemberCreateSchema(BaseModel):
 
 
 class AddMemberToWorkspaceSchema(BaseModel):
-    user_id: int
+    username: str
     role: RoleLiteral | None = None
 
 

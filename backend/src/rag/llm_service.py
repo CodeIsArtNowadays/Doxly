@@ -7,14 +7,14 @@ from config import settings
 class LLMService:
     def __init__(self):
         self.client = OpenAI(
-            base_url='https://openrouter.ai/api/v1',
+            base_url='https://openai.api.proxyapi.ru/v1',
             api_key=settings.AI_KEY
         )
     
     def get_response_from_llm(self, messages):
         logger.info(f'LLM | {messages}')
         response = self.client.chat.completions.create(
-            model='openai/gpt-oss-120b:free',
+            model='openai/gpt-4.1-nano',
             messages=messages
         )
         

@@ -29,9 +29,10 @@ async def get_workspace_member_repo(session: AsyncSession = Depends(get_db)):
 
 async def get_workspace_service(
     workspace_repo: WorkspaceRepository = Depends(get_workspace_repo),
-    ws_member_repo: WorkspaceMemberRepository = Depends(get_workspace_member_repo)
+    ws_member_repo: WorkspaceMemberRepository = Depends(get_workspace_member_repo),
+    member_repo: MemberRepository = Depends(get_member_repo)
 ):
-    return WorkspaceService(workspace_repo, ws_member_repo)
+    return WorkspaceService(workspace_repo, ws_member_repo, member_repo)
 
 
 class Permission:

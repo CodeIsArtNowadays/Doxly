@@ -9,7 +9,7 @@ from src.workspaces.schemas import (
     MemberCreateSchema,
     ChangeMemberRole
 )
-from src.workspaces.repository import WorkspaceRepository, WorkspaceMemberRepository
+from src.workspaces.repository import WorkspaceRepository, WorkspaceMemberRepository, MemberRepository
 
 
 class WorkspaceService:
@@ -17,11 +17,12 @@ class WorkspaceService:
     def __init__(
         self,
         workspace_repo: WorkspaceRepository,
-        workspace_member_repo: WorkspaceMemberRepository
+        workspace_member_repo: WorkspaceMemberRepository,
+	member_repo: MemberRepository
     ):
         self.workspace_repo = workspace_repo
         self.workspace_member_repo = workspace_member_repo
-
+        self.member_repo = member_repo
     async def create_workspace(self, workspace_request_data: WorkspaceCreateRequestSchema, user_id: int):
         workspace = await self.workspace_repo.create(workspace_request_data)
         workspace_member_data = WorkspaceMemberCreateSchema(workspace_id=workspace.id, user_id=user_id, role='owner')
@@ -38,9 +39,10 @@ class WorkspaceService:
         member_from_request: MemberModel,
         member_data: AddMemberToWorkspaceSchema
     ):
+        member_to_add = await self.member_repo.get_member_by_username(member_data.username)
         member_workspace_data = WorkspaceMemberCreateSchema(
             workspace_id=workspace_id,
-            user_id=member_data.user_id,
+            user_id=member_to_add.user_id,
             role=member_data.role
         )
         return await self.workspace_member_repo.create(member_workspace_data)
