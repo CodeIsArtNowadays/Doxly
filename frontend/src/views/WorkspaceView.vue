@@ -20,7 +20,7 @@ const ws = ref(null)
 
 // --- WebSocket ---
 function connectWS() {
-  ws.value = new WebSocket(`ws://localhost:8001/${id}/channel`)
+  ws.value = new WebSocket(`ws://139.100.235.44:8001/${id}/channel`)
 
   ws.value.onopen = () => {
     ws.value.send(JSON.stringify({
@@ -125,6 +125,7 @@ onUnmounted(() => {
           :members="members"
           :documents="documents"
           @upload="handleUpload"
+	  @memberAdded="fetchWorkspace"
         />
 
         <WorkspaceChat

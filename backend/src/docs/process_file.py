@@ -40,6 +40,7 @@ class ProcessFile:
         chunks = await self.chunking_text(text) # chunks = [{'chunk_id': 1, 'text': text, 'embedding': [vec]}]
         for chunk in chunks:
             chunk['embedding'] = await self.embedding(chunk['text'])
+            chunk['text'] = chunk['text'].replace("\x00", "")
             chunk_data = ChunkCreateSchema(
                 document_id=document.id,
                 document_index=chunk['chunk_id'],
