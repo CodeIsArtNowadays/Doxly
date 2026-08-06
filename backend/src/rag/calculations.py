@@ -11,8 +11,14 @@ def min_max_norm(v):
 # COSINE SIMILARITY
 
 def cos_sim(v1, v2):
-    return np.dot(v1, v2) / (l2_norm(v1) * l2_norm(v2))
-
+    v1_norm = l2_norm(v1)
+    v2_norm = l2_norm(v2)
+    if v1_norm == 0 or v2_norm == 0:
+        return None
+    try:
+        return np.dot(v1, v2) / (l2_norm(v1) * l2_norm(v2))
+    except Exception:
+        return None
 # BM25
 
 def calc_term_frequency(query, data):
