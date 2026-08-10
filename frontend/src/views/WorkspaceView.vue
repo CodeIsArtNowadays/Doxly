@@ -21,7 +21,8 @@ const ws = ref(null)
 // --- WebSocket ---
 function connectWS() {
   // ws.value = new WebSocket(`ws://localhost:8001/${id}/channel`)
-  ws.value = new WebSocket(`ws://139.100.235.44:8001/${id}/channel`)
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws.value = new WebSocket(`${wsProtocol}//${window.location.host}/ws/${id}/channel`)
 
   ws.value.onopen = () => {
     ws.value.send(JSON.stringify({

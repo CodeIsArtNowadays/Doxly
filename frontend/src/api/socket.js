@@ -1,4 +1,5 @@
-const BASE_WS = 'ws://139.100.235.44:8001' 
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const BASE_WS = `${wsProtocol}//${window.location.host}/ws`;
 // const BASE_WS = 'ws://localhost:8001/'
 
 export function createSocket(path, onMessage, onClose) {

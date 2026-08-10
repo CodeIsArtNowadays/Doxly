@@ -26,7 +26,7 @@ from src.rag.rag_service import RagService
 
 
 chat_router = APIRouter(prefix="/{workspace_id}")
-
+ws_router = APIRouter(prefix='/ws/{workspace_id}')
 
 @chat_router.get("/channel", response_model=list[MessageResponseSchema])
 async def channel(
@@ -39,7 +39,7 @@ async def channel(
         workspace_id, pagination.size, pagination.cursor
     )
 
-@chat_router.websocket("/channel")
+@ws_router.websocket("/channel")
 async def ws_handler(
     workspace_id: int,
     websocket: WebSocket,
