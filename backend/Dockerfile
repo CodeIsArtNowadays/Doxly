@@ -11,4 +11,4 @@ RUN uv sync --frozen --no-cache --no-install-project
 
 COPY . . 
 
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--ws", "websockets"]
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--ws", "websockets"]
