@@ -63,53 +63,53 @@ async def ws_handler(
                 while True:
                     
                     data = await websocket.receive_json() # JSON: {"type": "message": 'content': {'message': 'text'}}
+
+                    if not isinstance(data, dict) or data.get('type') != 'message':
+                        continue
                     
-                    if data["type"] == "message":
-                        message_raw = data["content"]["message"]
+                    message_raw = data["content"]["message"]
+                    
+                    message = MessageSchema(
+                        text=message_raw,
+                        author_id=member.user_id,
+                        workspace_id=workspace_id,
+                    )
+                    
+                    async with local_session.begin() as inner_session:
+                        local_message_repo = MessageRepository(inner_session)
+                        message = await local_message_repo.create(message)
                         
-                        message = MessageSchema(
-                            text=message_raw,
-                            author_id=member.user_id,
+                    message_response = MessageResponseSchema.model_validate(message)
+                    message_response.created_at = str(message_response.created_at)
+                    await websocket_manager.broadcast(
+                        workspace_id, message_response
+                    )
+                    
+                    if message.text.startswith('@ai'):
+                        
+                        ai_response = await rag_service.process(message.text[3:], workspace_id)
+
+                        ai_message = MessageSchema(
+                            text=ai_response['message'],
+                            author_id=1,
                             workspace_id=workspace_id,
+                            is_ai=True
                         )
-                        
                         async with local_session.begin() as inner_session:
                             local_message_repo = MessageRepository(inner_session)
-                            message = await local_message_repo.create(message)
+                            ai_message = await local_message_repo.create(ai_message)
                             await inner_session.commit()
                             
-                        message_response = MessageResponseSchema.model_validate(message)
-                        message_response.created_at = str(message_response.created_at)
-                        
-                        await websocket_manager.broadcast(
-                            workspace_id, message_response
+                        ai_response_message = AiMessageSchema(
+                            text=ai_message.text,
+                            author_id=1,
+                            workspace_id=ai_message.workspace_id,
+                            chunks=ai_response['chunks'],
+                            is_ai=True
                         )
-                        
-                        if message.text.startswith('@ai'):
-                            
-                            ai_response = await rag_service.process(message.text[2:], workspace_id)
-
-                            ai_message = MessageSchema(
-                                text=ai_response['message'],
-                                author_id=1,
-                                workspace_id=workspace_id,
-                                is_ai=True
-                            )
-                            async with local_session.begin() as inner_session:
-                                local_message_repo = MessageRepository(inner_session)
-                                ai_message = await local_message_repo.create(ai_message)
-                                await inner_session.commit()
-                                
-                            ai_response_message = AiMessageSchema(
-                                text=ai_message.text,
-                                author_id=1,
-                                workspace_id=ai_message.workspace_id,
-                                chunks=ai_response['chunks'],
-                                is_ai=True
-                            )
-                            await websocket_manager.broadcast(
-                                workspace_id, ai_response_message
-                            )
+                        await websocket_manager.broadcast(
+                            workspace_id, ai_response_message
+                        )
         else:
             await websocket.close(1008)
     except WebSocketDisconnect:

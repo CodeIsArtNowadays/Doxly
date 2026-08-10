@@ -11,6 +11,10 @@ class RagService:
     async def process(self, message: str, workspace_id):
         chunks = await self.chunk_repo.get_all_by_workspace_id(workspace_id)
         top_related_chunks = rate_chunks(message, chunks)
-        response = llm_service.ask_llm('Provided context: \n' + '\n'.join([chunk.text for chunk in top_related_chunks]))
+        response = llm_service.ask_llm(
+            'Provided context: \n' 
+            + '\n'.join([chunk.text for chunk in top_related_chunks])
+            + f'\n\n Question: {message}'
+        )
         # response = {'type': 'llm', 'content': {'message': response}}
         return {'message': response, 'chunks': [chunk.id for chunk in top_related_chunks]}
